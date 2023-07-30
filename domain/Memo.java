@@ -1,0 +1,90 @@
+package com.sparta.project.domain;
+
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+
+@NoArgsConstructor // 기본생성자를 만듭니다.
+//겟함수 직접 작성 안해도 쓰게 후ㅐ준다.
+@Getter
+@Setter
+@Entity // 테이블과 연계됨을 스프링에게 알려줍니다.
+//time stamped이거 왜쓰는지는 모르겠지만 상속시켜줬다.
+public class Memo extends Timestamped { // -> 생성, 수정시간 자동 할당 함수 사용 가능)
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Id
+    @Column
+    private Long id;
+    //1번 토일렛에 등
+
+    @Column(nullable = false)
+    private long toiletid;
+    //몇번 toilet에 등록
+
+    @Column(nullable = false)
+    private long memoid;
+    //n번쨰 토일렛의 몇번째 메모인지(id)
+
+    //entity 그 테이블에서 열이 username과 content 두줄이 있다? 이말인듯 nullable이 false인걸로 보아
+    //무조건 있어야되는건가? 싶음
+    @Column(nullable = false)
+    private String username;
+
+    @Column(nullable = false)
+    private String contents;
+
+    @Column(nullable = false)
+    private String password;
+
+    @Column(nullable = false)
+    private int good;
+
+
+    //이건 뭐 간단하게 생성자인거지 this이용해서 초기화
+    public Memo(long toiletid, long memoid, String username, String contents, String password, int good) {
+        this.toiletid = toiletid;
+        this.memoid = memoid;
+        this.username = username;
+        this.contents = contents;
+        this.password = password;
+        this.good = good;
+    }
+
+    //이건 requestdto이용해서 초기화 이게 차이가 아마 위에꺼는 직접적으로 username이랑 content 줘서 새로 선언할때 초기화시켜주는거고
+    //requestdto를 쓰는건 아에 쌔삥을 만드는게 아니라 requestdto로 기존꺼 이용해서 무언가 data처리를 해주기위해서 쓰는거임
+    ///private느낌나게 직접 data에 접근하면 안되니까 아마 requestdto쓰는듯
+    public Memo(MemoRequestDto requestDto) {
+        this.toiletid = requestDto.getToiletid();
+        this.memoid = requestDto.getMemoid();
+        this.username = requestDto.getUsername();
+        this.contents = requestDto.getContents();
+        this.password = requestDto.getPassword();
+        this.good=requestDto.getGood();
+    }
+
+    //update함수 request dto에서 이름이랑 content가져와서 현재 this의 내용을 바꿔줌
+    public void update(MemoRequestDto requestDto) {
+        this.toiletid = this.toiletid;
+        this.memoid = this.memoid;
+        this.username = requestDto.getUsername();
+        this.contents = requestDto.getContents();
+        this.password = requestDto.getPassword();
+        this.good=this.good;
+    }
+
+    public void updatelike(MemoRequestDto requestDto) {
+        this.toiletid = this.toiletid;
+        this.memoid = this.memoid;
+        this.username = this.username;
+        this.contents = this.contents;
+        this.password = this.password;
+        //good을 업데이트 할때는 내용이랑 이름을 바꿀이유가없음
+        this.good = requestDto.getGood();
+    }
+
+
+
+}

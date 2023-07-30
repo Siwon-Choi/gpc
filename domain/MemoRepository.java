@@ -1,0 +1,18 @@
+package com.sparta.project.domain;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+public interface MemoRepository extends JpaRepository<Memo, Long> {
+    List<Memo> findAllByModifiedAtBetweenOrderByModifiedAtDesc(LocalDateTime start, LocalDateTime end);
+
+    List<Memo> findAllByOrderByGoodDesc();
+    List<Memo> findAllByToiletid(long toiletid);
+    List<Memo> findByToiletidAndMemoid(long toiletid, long memoid);
+
+
+    long countByToiletid(long toiletid);
+}

@@ -1,0 +1,63 @@
+package com.sparta.project.controller;//package com.sparta.week03.controller;
+
+
+import com.sparta.project.domain.*;
+import com.sparta.project.service.ToiletService;
+import lombok.RequiredArgsConstructor;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.springframework.web.bind.annotation.*;
+
+import java.io.FileReader;
+import java.io.Reader;
+import java.util.List;
+import java.util.Optional;
+
+@RequiredArgsConstructor //final이 붙은 필드의 생성자를 자동 롬복 해주는 어노테이션
+@RestController
+// @Controller의 역할은 Model 객체를 만들어 데이터를 담고 View를 찾는 것이지만,
+// @RestController는 단순히 객체만을 반환하고 객체 데이터는 JSON 또는 XML 형식으로 HTTP 응답에 담아서 전송합니다.
+
+//Controller는 client의 request를 dto 의 형태로 받는다 또한 적절한 응답을 DTO의 형태로 반환하는 역할을 한다.
+// 즉, 요청과 응답을 관리하는 계층이라고 생각하면 된다.
+public class ToiletController {
+    //repository 쓰는이유:
+    //Entitiy에 의해 생성된 DB에 접근하는 매서드(ex)Save fihd all)같은 함수를 이용하기 위해서 쓴다.
+    //이 entity가 그 테이블 있잖아 가로 세로 그거 그걸 어쨋든 data를 가지고 이용해야되는거잖아 그러기위해서 이 repository가 필요한것이다.
+    //자세한건 repository에서 씀
+
+    private final ToiletRepository toiletRepository;
+    private final ToiletService toiletService;
+
+    //4가지 방법이 있다. get 가져오는거 post 등록하는거 put 업데이트 하는거 delete 지우는거
+    @GetMapping("/api/toilet")
+    public List<Toilet> getToilets() {
+        return toiletRepository.findAll();
+    }
+
+    @GetMapping("/api/toilet/{TOILET_ID}")
+    public Optional<Toilet> getToilet(@PathVariable Long TOILET_ID){
+        return toiletRepository.findById(TOILET_ID);
+    }
+
+    @PostMapping("/api/toilet")
+    public void createToilet() throws Exception {
+        JSONParser parser = new JSONParser();
+        Reader reader = new FileReader("/Users/csw/Desktop/toilet.json");
+        JSONArray dateArray = (JSONArray) parser.parse(reader);
+
+        for (int i = 0; i < dateArray.size(); i++) {
+            JSONObject data = (JSONObject) dateArray.get(i);
+            String s = (String) data.get("fname");
+            String x_w = (String) data.get("x_wgs84");
+            String y_w = (String) data.get("y_wgs84");
+            String x_c = (String) data.get("center_x1");
+            String y_c = (String) data.get("center_y1");
+            Toilet toilet = new Toilet(s,x_w,y_w,x_c,y_c,0,0);
+            toiletRepository.save(toilet);
+        }
+    }
+
+
+}
