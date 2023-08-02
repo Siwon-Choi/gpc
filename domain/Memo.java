@@ -1,4 +1,4 @@
-package com.sparta.project.domain;
+package com.sparta.toiletnearby.domain;
 
 
 import jakarta.persistence.*;
@@ -39,17 +39,21 @@ public class Memo extends Timestamped { // -> 생성, 수정시간 자동 할당
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
+    private int star;
+
+    @Column(nullable = true)
     private int good;
 
 
     //이건 뭐 간단하게 생성자인거지 this이용해서 초기화
-    public Memo(long toiletid, long memoid, String username, String contents, String password, int good) {
+    public Memo(long toiletid, long memoid, String username, String contents, String password, int star, int good) {
         this.toiletid = toiletid;
         this.memoid = memoid;
         this.username = username;
         this.contents = contents;
         this.password = password;
+        this.star = star;
         this.good = good;
     }
 
@@ -62,27 +66,22 @@ public class Memo extends Timestamped { // -> 생성, 수정시간 자동 할당
         this.username = requestDto.getUsername();
         this.contents = requestDto.getContents();
         this.password = requestDto.getPassword();
+        this.star=requestDto.getStar();
         this.good=requestDto.getGood();
     }
 
     //update함수 request dto에서 이름이랑 content가져와서 현재 this의 내용을 바꿔줌
     public void update(MemoRequestDto requestDto) {
-        this.toiletid = this.toiletid;
-        this.memoid = this.memoid;
         this.username = requestDto.getUsername();
         this.contents = requestDto.getContents();
         this.password = requestDto.getPassword();
-        this.good=this.good;
+        this.star = requestDto.getStar();
     }
 
-    public void updatelike(MemoRequestDto requestDto) {
-        this.toiletid = this.toiletid;
-        this.memoid = this.memoid;
-        this.username = this.username;
-        this.contents = this.contents;
-        this.password = this.password;
-        //good을 업데이트 할때는 내용이랑 이름을 바꿀이유가없음
-        this.good = requestDto.getGood();
+    //나중에 수정시간에 따른 id도 괜찮을듯?
+
+    public void updatelike() {
+        this.good =+ 1;
     }
 
 

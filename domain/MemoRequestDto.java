@@ -1,4 +1,4 @@
-package com.sparta.project.domain;
+package com.sparta.toiletnearby.domain;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -18,5 +18,6 @@ public class MemoRequestDto {
     private String username;
     private String contents;
     private String password;
+    private int star;
     private int good;
 }

@@ -1,8 +1,8 @@
-package com.sparta.project.service;//package com.sparta.week03.service;
+package com.sparta.toiletnearby.service;//package com.sparta.week03.service;
 
-
-
-import com.sparta.project.domain.*;
+import com.sparta.toiletnearby.domain.Toilet;
+import com.sparta.toiletnearby.domain.ToiletRepository;
+import com.sparta.toiletnearby.domain.ToiletRequestDto;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,8 +19,19 @@ public class ToiletService {
         Toilet toilet = toiletRepository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("아이디가 존재하지 않습니다.")
         );
+        //id에 부합하는 토일렛을 가져와서 toilet에 세팅 추후 업데이트
         //만약 리포지토리에 있어서 memo는 내가 업데이트 하고싶은얘고 이제 새로 업데이트 할 정보가 requestdto이다.
         toilet.updatestars(requestDto);
+    }
+
+    @Transactional
+    public void postStar(Long id, ToiletRequestDto requestDto) {
+        Toilet toilet = toiletRepository.findById(id).orElseThrow(
+                () -> new IllegalArgumentException("아이디가 존재하지 않습니다.")
+        );
+        //id에 부합하는 토일렛을 가져와서 toilet에 세팅 추후 업데이트
+        //만약 리포지토리에 있어서 memo는 내가 업데이트 하고싶은얘고 이제 새로 업데이트 할 정보가 requestdto이다.
+        toilet.postStar(requestDto);
     }
 
 

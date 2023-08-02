@@ -1,5 +1,6 @@
-package com.sparta.project.domain;
+package com.sparta.toiletnearby.domain;
 
+import com.sparta.toiletnearby.domain.Memo;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
@@ -11,7 +12,7 @@ public interface MemoRepository extends JpaRepository<Memo, Long> {
 
     List<Memo> findAllByOrderByGoodDesc();
     List<Memo> findAllByToiletid(long toiletid);
-    List<Memo> findByToiletidAndMemoid(long toiletid, long memoid);
+    Optional <Memo> findByToiletidAndMemoid(long toiletid, long memoid);
 
 
     long countByToiletid(long toiletid);

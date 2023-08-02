@@ -1,22 +1,13 @@
-package com.sparta.project.controller;
+package com.sparta.toiletnearby.controller;
 
-
-import com.sparta.project.domain.*;
-import com.sparta.project.service.MemoService;
-import com.sparta.project.service.ToiletService;
+import com.sparta.toiletnearby.domain.*;
+import com.sparta.toiletnearby.service.MemoService;
+import com.sparta.toiletnearby.service.ToiletService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,8 +42,8 @@ public class MemoController {
     }
 */
 
-    @GetMapping("/api/toilet/{TOILET_ID}/memos/{MEMO_ID}")
-    public List<Memo> getMemo(@PathVariable Long TOILET_ID, @PathVariable Long MEMO_ID){
+    @GetMapping("/api/toilet/{TOILET_ID}/memo/{MEMO_ID}")
+    public Optional <Memo> getMemo(@PathVariable long TOILET_ID, @PathVariable long MEMO_ID){
         return memoRepository.findByToiletidAndMemoid(TOILET_ID, MEMO_ID);
     }
     //3번 토일렛의 2번째 메모지
@@ -64,7 +55,7 @@ public class MemoController {
     }
     //3번 토일렛의 모든 메모지
 
-    @PostMapping("/api/toilet/memos") //아마 crateMemo의 requestDto로 뭔가 class느낌의 그게 오는데 이걸 Memo 로 생성하고
+    @PostMapping("/api/toilet/memo") //아마 crateMemo의 requestDto로 뭔가 class느낌의 그게 오는데 이걸 Memo 로 생성하고
     //그다음 memo를 memo Repository 함수에 넣어서 보내주는듯
     public Memo createMemo(@RequestBody MemoRequestDto requestDto){
         //새로운 memo 객체 생성후 이걸 repository에서 save함수를 이용하여 저장하는듯
@@ -76,13 +67,9 @@ public class MemoController {
         Optional<Toilet> optionalToilet = toiletRepository.findById(requestDto.getToiletid());
         optionalToilet.ifPresent(toilet -> {
             ToiletRequestDto toiletRequestDto = new ToiletRequestDto();
-            toiletRequestDto.setName(toilet.getName());
-            toiletRequestDto.setX_wgs84(toilet.getX_wgs84());
-            toiletRequestDto.setY_wgs84(toilet.getY_wgs84());
-            toiletRequestDto.setCenter_x1(toilet.getCenter_x1());
-            toiletRequestDto.setCenter_y1(toilet.getCenter_y1());
-            toiletRequestDto.setStar(toilet.getStar() + requestDto.getGood());
+            toiletRequestDto.setStars(toilet.getStars() + requestDto.getStar());
             toiletRequestDto.setPlayer(toilet.getPlayer() + 1);
+            toiletRequestDto.setStarsAve((float)(toilet.getStars() + requestDto.getStar())/(float)(toilet.getPlayer() + 1));
             toiletService.updatestars(toilet.getId(), toiletRequestDto);
         });
         //생각해보니 위의 초기화 의미 없는듯? 그냥 star랑 player빼고 다 아무값이나 넣어도될듯
@@ -90,22 +77,40 @@ public class MemoController {
     }
 
 
-    @PutMapping("/api/toilet/{TOILET_ID}/memos/{MEMO_ID}")
+    @PutMapping("/api/toilet/{TOILET_ID}/memo/{MEMO_ID}")
     //정보를 업데이트 해야하므로 그 주체를 찾기위해서 id를 찾는다 id가 키가 되는데 그 키설정하는게 memo class인가? 있다 id를 쓰려면
     //pathVariable이 있어야된다. 그리고 그 위에서 postmapping처럼 이 그 class 느낌의 그게 오니까 requestdto로 받는다
     //그리고 service에서 정의한 update함수를 이용한다.
     public Long updateMemo(@PathVariable long TOILET_ID, @PathVariable Long MEMO_ID, @RequestBody MemoRequestDto requestDto) {
         //업데이트는 서비스니까 서비스 class를 이용하고 아까 위에서는 새로 만들어서 올려야되니까
         //repository이용해서 save해서 새롭게 db에 올리는듯
-        memoService.update(TOILET_ID, requestDto);
+        Optional<Toilet> optionalToilet = toiletRepository.findById(requestDto.getToiletid());
+        Optional<Memo> optionalMemo = memoRepository.findByToiletidAndMemoid(TOILET_ID, MEMO_ID);
+        optionalToilet.ifPresent(toilet -> {
+            ToiletRequestDto toiletRequestDto = new ToiletRequestDto();
+            toiletRequestDto.setPlayer(toilet.getPlayer());
+            toiletRequestDto.setStars(toilet.getStars() + requestDto.getStar() - optionalMemo.get().getStar());
+            toiletRequestDto.setStarsAve((float)(toiletRequestDto.getStars())/(float)(toiletRequestDto.getPlayer()));
+            toiletService.updatestars(toilet.getId(), toiletRequestDto);
+        });
+        memoService.update(TOILET_ID, MEMO_ID, requestDto);
         return TOILET_ID;
     }
 
-    @DeleteMapping("/api/toilet/{TOILET_ID}/memos/{MEMO_ID}")
+    @DeleteMapping("/api/toilet/{TOILET_ID}/memo/{MEMO_ID}")
     //지
     public Long deleteMemo(@PathVariable Long MEMO_ID) {
         //repository에서 delete함수 써서 지운다.
         memoRepository.deleteById(MEMO_ID);
         return MEMO_ID;
     }
+
+
+    @PutMapping("/api/toilet/{TOILET_ID}/memo/{MEMO_ID}/good")
+    public void updatelike(@PathVariable Long TOILET_ID, @PathVariable Long MEMO_ID, @RequestBody MemoRequestDto requestDto) {
+        memoService.updatelike(TOILET_ID, MEMO_ID, requestDto);
+    }
 }
+
+///0과 null을 구분을 해야, 미기재와 평점 0점의 차이를 가를 수가 있지 않을까?
+//평점을 메모 밖에서 메길 때에는, 수정이 불가능하므로, 아마도 회원가입, 로그인 기능 후에 빛을 볼거같음!

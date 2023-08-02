@@ -1,120 +1,92 @@
-package com.sparta.project.domain;
+package com.sparta.toiletnearby.domain;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.io.FileReader;
 import java.io.Reader;
 
-
-
-@NoArgsConstructor // 기본생성자를 만듭니다.
-//겟함수 직접 작성 안해도 쓰게 후ㅐ준다.
+@NoArgsConstructor
 @Getter
 @Setter
-@Entity // 테이블과 연계됨을 스프링에게 알려줍니다.
-//time stamped이거 왜쓰는지는 모르겠지만 상속시켜줬다.
-public class Toilet extends Timestamped { // -> 생성, 수정시간 자동 할당 함수 사용 가능)
-    @GeneratedValue(strategy = GenerationType.AUTO)
+@Entity
+public class Toilet extends Timestamped {
+    @GeneratedValue(strategy =  GenerationType.AUTO)
     @Id
-    @Column
     private Long id;
 
-    //entity 그 테이블에서 열이 Address과 content 두줄이 있다? 이말인듯 nullable이 false인걸로 보아
-    //무조건 있어야되는건가? 싶음
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
-    private String x_wgs84;
+    private double x_wgs;
 
-    @Column(nullable = false)
-    private String y_wgs84;
+    private double y_wgs;
 
-    @Column(nullable = false)
-    private String center_x1;
+    private int stars;
 
-    @Column(nullable = false)
-    private String center_y1;
+    private float starsAve;
 
-    @Column(nullable = false)
-    private int star;
-
-
-    @Column(nullable = false)
     private int player;
 
 
-    //이건 뭐 간단하게 생성자인거지 this이용해서 초기화
-    public Toilet(String name, String x_wgs84, String y_wgs84, String center_x1, String center_y1, int star, int player) {
+    public Toilet(String name, double x, double y, int stars, int player, float starsAve){
         this.name = name;
-        this.x_wgs84 = x_wgs84;
-        this.y_wgs84 = y_wgs84;
-        this.center_x1 = center_x1;
-        this.center_y1 = center_y1;
-        this.star = star;
+        this.x_wgs = x;
+        this.y_wgs = y;
+        this.stars = stars;
         this.player = player;
+        this.starsAve = starsAve;
     }
 
-
-
-    //이건 ToiletRequestDto이용해서 초기화 이게 차이가 아마 위에꺼는 직접적으로 Address이랑 content 줘서 새로 선언할때 초기화시켜주는거고
-    //ToiletRequestDto를 쓰는건 아에 쌔삥을 만드는게 아니라 ToiletRequestDto로 기존꺼 이용해서 무언가 data처리를 해주기위해서 쓰는거임
-    ///private느낌나게 직접 data에 접근하면 안되니까 아마 ToiletRequestDto쓰는듯
-    public Toilet(ToiletRequestDto requestDto) {
+    public Toilet(ToiletRequestDto requestDto){
         this.name = requestDto.getName();
-        this.x_wgs84 = requestDto.getX_wgs84();
-        this.y_wgs84 = requestDto.getY_wgs84();
-        this.center_x1 = requestDto.getCenter_x1();
-        this.center_y1 = requestDto.getCenter_y1();
-        this.star = requestDto.getStar();
+        this.x_wgs = requestDto.getX_wgs();
+        this.y_wgs = requestDto.getY_wgs();
+        this.stars = requestDto.getStars();
+        this.starsAve = requestDto.getStarsAve();
         this.player = requestDto.getPlayer();
     }
-
 
     public void updatestars(ToiletRequestDto requestDto) {
-        this.name = this.name;
-        this.x_wgs84 = this.x_wgs84;
-        this.y_wgs84 = this.y_wgs84;
-        this.center_x1 = this.center_x1;
-        this.center_y1 = this.center_y1;
-        this.star = requestDto.getStar();
+        //있어야 하는 이유?
+        this.stars = requestDto.getStars();
+        this.starsAve = requestDto.getStarsAve();
         this.player = requestDto.getPlayer();
     }
 
-    public void updateStar(ToiletRequestDto requestDto) {
-        this.name = this.name;
-        this.x_wgs84 = this.x_wgs84;
-        this.y_wgs84 = this.y_wgs84;
-        this.center_x1 = this.center_x1;
-        this.center_y1 = this.center_y1;
-        //this.star += (requestDto.getStar()-this.st;
-        this.player = this.player;
+    public void postStar(ToiletRequestDto toiletRequestDto) {
+        this.player += 1;
+        this.stars = this.stars + toiletRequestDto.getStars();
     }
+//받아오는 형식을 좀 toiletRequestDto 말고 다른건 안 될까?
 
-
-    public static void readJson() throws Exception {
+    public static JSONArray readJson() throws Exception {
+        ToiletRepository toiletRepository = null;
+        ToiletRequestDto requestDto;
         JSONParser parser = new JSONParser();
         // JSON 파일 읽기
-        Reader reader = new FileReader("/Users/csw/Desktop/toilet.json");
+        Reader reader = new FileReader("/Users/park/IdeaProjects/toiletNearby/src/main/resources/static/toiletInfo.json");
         JSONArray dateArray = (JSONArray) parser.parse(reader);
-
-        for (int i = 0; i < dateArray.size(); i++) {
-            Toilet toilet = new Toilet();
-
-            JSONObject data = (JSONObject) dateArray.get(i);
-            toilet.setName((String) data.get("fname"));
-            System.out.println((String) data.get("fname"));
-        }
+        return dateArray;
     }
+    public static double distance(double lat1, double lon1, double lat2, double lon2){
+        double theta = lon1 - lon2;
+        double dist = Math.sin(deg2rad(lat1))* Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat1))*Math.cos(deg2rad(lat2))*Math.cos(deg2rad(theta));
+        dist = Math.acos(dist);
+        dist = rad2deg(dist);
+        dist = dist * 60*1.1515*1609.344;
 
+        return dist; //단위 meter
+    }
+    public static double deg2rad(double deg){
+        return (deg * Math.PI/180.0);
+    }
+    //radian(라디안)을 10진수로 변환
+    public static double rad2deg(double rad){
+        return (rad * 180 / Math.PI);
+    }
 }
